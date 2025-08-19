@@ -121,9 +121,6 @@ function actualizarVistaIdOrden(compra) {
   }
 }
 
-
-
-
 function generarVistaEstatus(compra) {
   const pasosHtml = camposEstatus.map((campo, index) => {
     const estActual = compra.estatus[campo];
@@ -257,10 +254,6 @@ function handleDropdownClick(button, compraId, campo) {
     }
   }
 }
-
-
-
-
 
 // Función para mostrar/ocultar menú
 function toggleMenu(btn) {
@@ -406,13 +399,6 @@ async function guardarEdicionOrden(compraId) {
   }
 }
 
-
-
-
-
-
-
-
 // ---------- ESCUCHAR CHECKS ----------
 document.addEventListener("change", async (e) => {
   if (!e.target.matches(".estado-global input[type='checkbox']") &&
@@ -461,8 +447,6 @@ document.addEventListener("change", async (e) => {
     alert("No se pudo actualizar el estado en el servidor.");
   }
 });
-
-
 
 // ---------- CRUD ----------
 async function cargarCompras() {
@@ -536,6 +520,41 @@ function cerrarFormulario() {
   document.getElementById('loginContainer').style.display = 'none';
 }
 
+function exportarCSV(datos) {
+  if (!Array.isArray(datos) || datos.length === 0) {
+    alert("No hay datos para exportar");
+    return;
+  }
+
+  // Tomar las llaves del primer objeto como encabezados
+  const encabezados = Object.keys(datos[0]);
+  const filas = datos.map(obj =>
+    encabezados.map(campo => JSON.stringify(obj[campo] ?? "")).join(",")
+  );
+
+  // Unir encabezados + filas
+  const csvContent = [encabezados.join(","), ...filas].join("\n");
+
+  const hoy = new Date();
+  const dia = String(hoy.getDate()).padStart(2, "0");
+  const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+  const anio = hoy.getFullYear();
+
+  const nombreArchivo = `compras_${dia}_${mes}_${anio}.csv`;
+
+  // Crear blob y descargar
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", nombreArchivo);
+  link.click();
+}
+
+// Cuando se haga clic en el botón
+document.getElementById("btnExportCsv").addEventListener("click", () => {
+  exportarCSV(compras); // usa la variable que ya tienes cargada
+});
 
 // ---------- INICIO ----------
 cargarCompras();

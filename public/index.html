@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estado de solicitud de compra</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -12,10 +13,13 @@
 <body>
   <header>
     <h1>Estado de solicitud de compra</h1>
-    <button id="btnNuevaCompra">Nueva Compra</button>
+    <div class="acciones-header">
+      <button  id="btnNuevaCompra">Nueva</button>
+      <button id="btnExportCsv"><i class="fa-solid fa-angles-down"></i></button>
+    </div>
   </header>
 
-  <h2>Lista de compras activas</h2>
+  <h2 class="titulo-lista">Lista de compras activas</h2>
   <div id="formContainer" style="display:none;">
     <form id="formCompra">
       Agregar nueva compra
