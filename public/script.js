@@ -25,8 +25,6 @@ const camposEstatus = [
 
 let usuarioActual = null; // guardará el usuario logueado
 
-// ---------- FUNCIONES DE LOGIN ----------
-
 
 document.getElementById('formLogin').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -126,42 +124,117 @@ function actualizarVistaIdOrden(compra) {
 
 
 
-
 function generarVistaEstatus(compra) {
-  // Paso actual
-  let pasoActual = Object.entries(compra.estatus).find(([campo, estado]) => estado === "En proceso");
-  if (!pasoActual) pasoActual = Object.entries(compra.estatus)[0];
-  const [campoActual, estadoActual] = pasoActual;
+  const pasosHtml = camposEstatus.map((campo, index) => {
+    const estActual = compra.estatus[campo];
 
-  // Columna 3: 11 pasos con checkbox-group horizontal
-  const pasosHtml = camposEstatus.map((campo, index) => `
-    <div class="paso-horizontal" data-compra-id="${compra.id}" data-campo="${campo}">
-      <strong>${index + 1}: ${campo.replace(/_/g, " ")}</strong>
-      <div class="checkbox-group">
-        ${estados.map(est => `
-          <label>
-            <input type="checkbox" data-compra-id="${compra.id}" data-campo="${campo}" value="${est}" 
-              ${compra.estatus[campo] === est ? "checked" : ""} 
-              ${usuarioActual && usuarioActual.tipo !== 'admin' ? 'disabled' : ''}>
-            ${est}
-          </label>
-        `).join('')}
+    // Color del LED según estatus
+    let colorActual = '';
+    switch (estActual) {
+      case "Terminado": colorActual = "green"; break;
+      case "En proceso": colorActual = "yellow"; break;
+      case "No iniciado": colorActual = "gray"; break;
+      case "Cancelado": colorActual = "red"; break;
+      default: colorActual = "blue";
+    }
+
+    // Filtramos "No iniciado" para menú
+    const opcionesHtml = estados
+      .filter(est => est !== estActual && est !== "No iniciado")
+      .map(est => {
+        let color = '';
+        switch (est) {
+          case "Terminado": color = "green"; break;
+          case "En proceso": color = "yellow"; break;
+          case "Cancelado": color = "red"; break;
+          default: color = "blue";
+        }
+        return `
+          <li onclick="cambiarEstatus(${compra.id}, '${campo}', '${est}')"
+              style="padding:4px 8px; cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between;">
+            <span>${est}</span>
+            <span class="led-pequeno" style="
+                display:inline-block;
+                width:12px;
+                height:12px;
+                border-radius:50%;
+                background-color:${color};
+                border:1px solid #999;
+            "></span>
+          </li>
+        `;
+      }).join('');
+
+    return `
+      <div class="paso-horizontal" data-compra-id="${compra.id}" data-campo="${campo}" font-size:14px; style="margin-bottom:16px;">
+        <strong>${index + 1}: ${campo.replace(/_/g, " ")}</strong>
+        
+        <!-- Etiqueta y botón alineados -->
+        <div class="estatus-dropdown" 
+             style="display:flex; align-items:center; gap:6px; justify-content:center; position:relative;">
+          
+          <span class="estatus-actual" style="
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                padding:4px 8px;
+                font-size:16px;
+                background:#121212;
+                border:1px solid #ccc;
+                border-radius:4px;
+                height:24px;">
+            ${estActual}
+          </span>
+          
+          <button 
+            onclick="handleDropdownClick(this, '${compra.id}', '${campo}')"
+            class="desplegar-btn" 
+            style="display:inline-flex; align-items:center; justify-content:center;
+                   padding:4px 6px; font-size:12px; background-color:gray; 
+                   color:white; border:none; border-radius:4px; height:24px;">
+            ▼
+          </button>
+
+          <!-- Menú oculto inicialmente -->
+          <ul class="menu-estatus" style="
+              display:none; 
+              position:absolute; 
+              top:100%; 
+              left:50%; 
+              transform:translateX(-50%);
+              background:#000; 
+              color:#fff;
+              border:1px solid #ccc; 
+              padding:4px 0; 
+              margin:4px 0 0 0; 
+              min-width:180px; 
+              z-index:10;">
+            ${opcionesHtml}
+          </ul>
+        </div>
+
+        <!-- LED grande centrado -->
+        <div style="margin-top:8px; display:flex; justify-content:center;">
+          <span class="led" style="
+              display:inline-block;
+              width:24px;
+              height:24px;
+              border-radius:50%;
+              background-color:${colorActual};
+              border:2px solid #999;
+          "></span>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   return `
     <div class="compra-grid">
-      <!-- Columna 1 -->
       <div class="col col1">
         ${actualizarVistaIdOrden(compra)}
         ${compra.descripcion ? `<p>Descripción: ${compra.descripcion}</p>` : ''}
       </div>
-
-      <!-- Columna 2: vacío -->
       <div class="col col2"></div>
-
-      <!-- Columna 3: pasos horizontales -->
       <div class="col col3">
         <div class="otros-pasos-horizontal">
           ${pasosHtml}
@@ -169,6 +242,73 @@ function generarVistaEstatus(compra) {
       </div>
     </div>
   `;
+}
+
+// Función para manejar el click del dropdown
+function handleDropdownClick(button, compraId, campo) {
+  if (usuarioActual && usuarioActual.tipo === 'admin') {
+    toggleMenu(button); // admin puede abrir menú
+  } else {
+    // No admin → llamar función de verificación
+    if (typeof verificarPermiso === 'function') {
+      verificarPermiso();
+    } else {
+      console.warn('Función verificarPermiso() no definida.');
+    }
+  }
+}
+
+
+
+
+
+// Función para mostrar/ocultar menú
+function toggleMenu(btn) {
+  const menu = btn.parentElement.querySelector('.menu-estatus');
+  if (!menu) return;
+  menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+}
+
+// Función para cambiar estatus
+async function cambiarEstatus(compraId, campo, nuevoEstado) {
+  if (!verificarPermiso()) return;
+
+  const compra = compras.find(c => c.id === compraId);
+  if (!compra) return;
+
+  // Guardar para revertir si falla
+  const estadoAnterior = compra.estatus[campo];
+
+  // Actualiza en memoria
+  compra.estatus[campo] = nuevoEstado;
+
+  // Regla: si se marca "Terminado", avanzar el siguiente paso a "En proceso" si está "No iniciado"
+  if (nuevoEstado === "Terminado") {
+    const idx = camposEstatus.indexOf(campo);
+    const sig = camposEstatus[idx + 1];
+    if (sig && compra.estatus[sig] === "No iniciado") {
+      compra.estatus[sig] = "En proceso";
+    }
+  }
+
+  try {
+    const res = await fetch(`/compras/${compraId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(compra)
+    });
+    if (!res.ok) throw new Error("PUT /compras/:id falló");
+
+    // Re-render y cerrar menús abiertos de este paso
+    mostrarCompras();
+    // (opcional) si quieres: actualizarPermisos(); // por si ocultas botones a no-admins tras re-render
+  } catch (err) {
+    console.error(err);
+    alert("No se pudo actualizar el estado en el servidor. Se revertirá el cambio.");
+    // Revertir en memoria y re-render
+    compra.estatus[campo] = estadoAnterior;
+    mostrarCompras();
+  }
 }
 
 
@@ -276,7 +416,7 @@ async function guardarEdicionOrden(compraId) {
 // ---------- ESCUCHAR CHECKS ----------
 document.addEventListener("change", async (e) => {
   if (!e.target.matches(".estado-global input[type='checkbox']") &&
-      !e.target.closest(".paso-horizontal input[type='checkbox']")) return;
+    !e.target.closest(".paso-horizontal input[type='checkbox']")) return;
 
   const compraId = parseInt(e.target.dataset.compraId);
   const campo = e.target.dataset.campo;
