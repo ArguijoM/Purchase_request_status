@@ -48,15 +48,10 @@ function actualizarPermisos() {
   // Mostrar el botón "Nueva Compra" para cualquier usuario logueado
   document.getElementById('btnNuevaCompra').style.display = 'inline-block';
 
-  // Mostrar u ocultar botones de edición/borrado según tipo
-  if (usuarioActual.tipo === 3) {
-    // Admin: mostrar todos los botones de edición
-    document.querySelectorAll('.guardar-btn').forEach(btn => btn.style.display = 'inline-block');
-  } else {
-    // Tipos 1 y 2: ocultar botones de borrar/editar (excepto creación)
-    document.querySelectorAll('.guardar-btn').forEach(btn => btn.style.display = 'none');
-  }
+  // Mostrar todos los botones de eliminar/editar (guardar-btn) para todos los usuarios logueados
+  document.querySelectorAll('.guardar-btn').forEach(btn => btn.style.display = 'inline-block');
 }
+
 
 
 
