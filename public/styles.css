@@ -4,29 +4,27 @@ body {
     background-color: #121212;
     color: #e0e0e0;
     margin: 0;
-    padding-left: 20px;
-    /* padding lateral agregado */
-    padding-right: 20px;
-    /* padding lateral agregado */
+}
+
+body>*:not(header) {
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
 }
 
 header {
     background-color: #1f1f1f;
     width: 100%;
-    /* ocupa todo el ancho de la pantalla */
     border-bottom: 1px solid #333;
-
     display: flex;
     justify-content: space-between;
-    /* h1 a la izquierda, botón a la derecha */
     align-items: center;
-    /* centra verticalmente */
 }
 
 .acciones-header {
     display: flex;
     gap: 8px;
-    /* espacio entre botones */
+    margin-right: 16px;
 }
 
 .acciones-header button {
@@ -52,7 +50,6 @@ header button {
 }
 
 h2.titulo-lista {
-    padding-left: 22px;
     text-align: center;
     /* espacio a la izquierda */
 }
@@ -119,7 +116,7 @@ img {
 
 
 /* --- Resto de tus estilos se mantiene igual --- */
-button{
+button {
     padding: 10px 15px;
     margin-bottom: 20px;
     border: none;
@@ -398,7 +395,7 @@ textarea {
 }
 
 .guardar-btn {
-    padding: 4px 8px;
+    padding: 6px 8px;
     margin-left: 5px;
     max-width: 100px;
     border: none;
@@ -481,7 +478,7 @@ textarea {
 .paso-horizontal strong {
     display: block;
     margin-bottom: 5px;
-    font-size: 14px;
+    font-size: 16px;
     text-align: center;
 }
 
@@ -567,7 +564,14 @@ h2 {
     width: 400px;
     /* ajusta a tu gusto */
     max-width: 100%;
-    padding: 4px;
+    padding: 6px;
+}
+
+.input-corto::placeholder {
+    font-size: 16px;
+    /* aquí ajustas el tamaño del placeholder */
+    color: #999;
+    /* opcional: cambiar color del placeholder */
 }
 
 
@@ -601,6 +605,45 @@ h2 {
         height: 40px !important;
     }
 
+    .paso-horizontal {
+        background: #2c2c2c;
+        border: 1px solid #555;
+        border-radius: 8px;
+        padding: 10px;
+        min-width: 200px;
+        flex-shrink: 0;
+    }
+
+    .paso-horizontal strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 18px;
+        text-align: center;
+    }
+
+    .input-corto {
+        width: 250px;
+        /* ajusta a tu gusto */
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    .input-corto::placeholder {
+        font-size: 18px;
+        /* aquí ajustas el tamaño del placeholder */
+        color: #999;
+        /* opcional: cambiar color del placeholder */
+    }
+
+    .input-modal {
+        padding: 16px;
+    }
+
+    .acciones-header button {
+        padding: 40px 16px;
+
+    }
+
     select,
     input.editable-input {
         font-size: 20px !important;
@@ -608,8 +651,13 @@ h2 {
     }
 
     .guardar-btn {
-        font-size: 20px !important;
-        padding: 12px 18px !important;
+        font-size: 15px !important;
+        padding: 10px 16px !important;
+    }
+
+    .guardar-btn-2 {
+        font-size: 15px !important;
+        padding: 8px 16px !important;
     }
 
     #formCompra button[type="submit"],
@@ -617,7 +665,7 @@ h2 {
     #formLogin button,
     #formLogin .cerrar-btn {
         font-size: 20px !important;
-        padding: 12px 18px !important;
+        padding: 10px 14px !important;
     }
 
     #formCompra input,

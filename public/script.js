@@ -5,12 +5,14 @@ const comprasList = document.getElementById('listaCompras');
 
 let compras = [];
 const usuarios = [
-  { usuario: "admin", password: "admin", tipo: "admin" }
+  { usuario: "admin", password: "admin", tipo: 3 },
+  { usuario: "compras", password: "compras", tipo: 2},
+  { usuario: "usuario", password: "usuario", tipo: 1}
 ];
 
 const estados = ["No iniciado", "En proceso", "Terminado", "Cancelado"];
 const camposEstatus = [
-  "solicitado",
+  "Solicitado",
   "Cotizacion_de_departamento",
   "OC_solicitada",
   "OC_realizada",
@@ -100,12 +102,12 @@ function mostrarCompras() {
 function actualizarVistaIdOrden(compra) {
   if (!compra) return '';
 
-  if (compra.id_orden_compra) {
+  if (compra.orden_compra) {
     return `
       <div class="fila-orden">
         <label>No. Orden de Compra:</label>
-        <span id="textoOrden_${compra.id}">${compra.id_orden_compra}</span>
-        <button class="guardar-btn" onclick="editarIdOrden(${compra.id})">
+        <span style="font-size:18px;" id="textoOrden_${compra.id}">${compra.orden_compra}</span>
+        <button class="guardar-btn-2" onclick="editarIdOrden(${compra.id})">
           <i class="fa-solid fa-pen-to-square"></i>
         </button>
       </div>
@@ -171,15 +173,17 @@ function generarVistaEstatus(compra) {
              style="display:flex; align-items:center; gap:6px; justify-content:center; position:relative;">
           
           <span class="estatus-actual" style="
+                box-sizing: border-box; 
                 display:inline-flex;
                 align-items:center;
                 justify-content:center;
-                padding:4px 8px;
+                padding:0px 6px;
                 font-size:16px;
+                line-height: 1; 
                 background:#121212;
                 border:1px solid #ccc;
                 border-radius:4px;
-                height:24px;">
+                height:28px;">
             ${estActual}
           </span>
           
@@ -187,8 +191,9 @@ function generarVistaEstatus(compra) {
             onclick="handleDropdownClick(this, '${compra.id}', '${campo}')"
             class="desplegar-btn" 
             style="display:inline-flex; align-items:center; justify-content:center;
-                   padding:4px 6px; font-size:12px; background-color:gray; 
-                   color:white; border:none; border-radius:4px; height:24px;">
+         padding:2px 6px; font-size:16px; line-height:1; font-family:inherit;
+         transform: translateY(5px);
+         background-color:gray; color:white; border:none; border-radius:4px; height:28px;">
             ▼
           </button>
 
@@ -226,7 +231,7 @@ function generarVistaEstatus(compra) {
   }).join('');
 
   return `
-    <div class="compra-grid">
+    <div class="compra-grid" style="padding: 0 16px;>
       <div class="col col1">
         ${actualizarVistaIdOrden(compra)}
         ${compra.descripcion ? `<p>Descripción: ${compra.descripcion}</p>` : ''}
@@ -348,7 +353,7 @@ async function guardarIdOrden(compraId) {
 
   const compra = compras.find(c => c.id === compraId);
   if (!compra) return;
-  compra.id_orden_compra = valor;
+  compra.orden_compra = valor;
 
   try {
     const res = await fetch(`/compras/${compraId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(compra) });
@@ -386,7 +391,7 @@ async function guardarEdicionOrden(compraId) {
 
   const compra = compras.find(c => c.id === compraId);
   if (!compra) return;
-  compra.id_orden_compra = valor;
+  compra.orden_compra = valor;
 
   try {
     const res = await fetch(`/compras/${compraId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(compra) });
@@ -476,7 +481,7 @@ formCompra.addEventListener('submit', async (e) => {
   const estatusPorDefault = {};
   camposEstatus.forEach((campo, i) => estatusPorDefault[campo] = i === 0 ? "En proceso" : "No iniciado");
 
-  const nuevaCompra = { id: nuevoId, nombre, descripcion, id_orden_compra: idOrden, estatus: estatusPorDefault };
+  const nuevaCompra = { id: nuevoId, nombre, descripcion, orden_compra: idOrden, estatus: estatusPorDefault };
 
   compras.push(nuevaCompra);
 
@@ -526,20 +531,42 @@ function exportarCSV(datos) {
     return;
   }
 
-  // Tomar las llaves del primer objeto como encabezados
-  const encabezados = Object.keys(datos[0]);
-  const filas = datos.map(obj =>
-    encabezados.map(campo => JSON.stringify(obj[campo] ?? "")).join(",")
-  );
+  // Encabezados
+  const encabezadosBase = Object.keys(datos[0]).filter(k => k !== "estatus");
+  const todosEstatus = Object.keys(datos[0].estatus || {});
+  const encabezados = [...encabezadosBase, ...todosEstatus];
 
-  // Unir encabezados + filas
-  const csvContent = [encabezados.join(","), ...filas].join("\n");
+  // Construir encabezados numerados solo para los estatus
+  const encabezadosNumerados = encabezados.map((h, i) => {
+    if (i < encabezadosBase.length) {
+      return h; // Campos base SIN numerar
+    }
+    return `${i - encabezadosBase.length + 1}: ${h}`; // Numerar estatus desde 1
+  });
 
+  // Filas
+  const filas = datos.map(obj => {
+    const filaBase = encabezadosBase.map(campo => {
+      const valor = obj[campo];
+      return valor === undefined || valor === null || valor === "" ? "-" : valor;
+    });
+
+    const filaEstatus = todosEstatus.map(est => {
+      const valor = obj.estatus[est] ?? "";
+      return valor === "No iniciado" || valor === "" ? "-" : valor;
+    });
+
+    return [...filaBase, ...filaEstatus].join(",");
+  });
+
+  // Construcción CSV
+  const csvContent = [encabezadosNumerados.join(","), ...filas].join("\n");
+
+  // Fecha para el nombre del archivo
   const hoy = new Date();
   const dia = String(hoy.getDate()).padStart(2, "0");
   const mes = String(hoy.getMonth() + 1).padStart(2, "0");
   const anio = hoy.getFullYear();
-
   const nombreArchivo = `compras_${dia}_${mes}_${anio}.csv`;
 
   // Crear blob y descargar
@@ -551,8 +578,17 @@ function exportarCSV(datos) {
   link.click();
 }
 
+
+
+
+
+
+
+
+
 // Cuando se haga clic en el botón
 document.getElementById("btnExportCsv").addEventListener("click", () => {
+  if (!verificarPermiso()) return;
   exportarCSV(compras); // usa la variable que ya tienes cargada
 });
 

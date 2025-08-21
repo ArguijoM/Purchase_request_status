@@ -3,9 +3,9 @@
     "id": 1,
     "nombre": "Cable UTP",
     "descripcion": "",
-    "id_orden_compra": "adasdasdfasfas",
+    "orden_compra": "adasdasdfasfas",
     "estatus": {
-      "solicitado": "Terminado",
+      "Solicitado": "Terminado",
       "Cotizacion_de_departamento": "Terminado",
       "OC_solicitada": "Terminado",
       "OC_realizada": "Terminado",
@@ -22,10 +22,29 @@
     "id": 2,
     "nombre": "Tornillos",
     "descripcion": "",
-    "id_orden_compra": "",
+    "orden_compra": "",
     "estatus": {
-      "solicitado": "Terminado",
+      "Solicitado": "Terminado",
       "Cotizacion_de_departamento": "En proceso",
+      "OC_solicitada": "No iniciado",
+      "OC_realizada": "No iniciado",
+      "OC_verificada": "No iniciado",
+      "OC_autorizada": "No iniciado",
+      "OC_pagada": "No iniciado",
+      "Producto_enviado": "No iniciado",
+      "Producto_recibido": "No iniciado",
+      "Factura": "No iniciado",
+      "Agregado_al_sistema": "No iniciado"
+    }
+  },
+  {
+    "id": 3,
+    "nombre": "Gabinete",
+    "descripcion": "",
+    "orden_compra": "",
+    "estatus": {
+      "Solicitado": "En proceso",
+      "Cotizacion_de_departamento": "No iniciado",
       "OC_solicitada": "No iniciado",
       "OC_realizada": "No iniciado",
       "OC_verificada": "No iniciado",

@@ -7,7 +7,7 @@
   <title>Estado de solicitud de compra</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
+  <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 
 <body>
@@ -24,9 +24,9 @@
     <form id="formCompra">
       Agregar nueva compra
       <button type="button" class="cerrar-btn" onclick="cerrarFormulario()">X</button>
-      <input type="text" id="nombre" placeholder="Nombre" required>
-      <input type="text" id="descripcion" placeholder="Descripción (opcional)">
-      <input type="text" id="idOrdenCompra" placeholder="No. Orden de Compra (opcional)">
+      <input  type="text" class="input-modal" id="nombre" placeholder="Nombre" required>
+      <input  type="text" class="input-modal" id="descripcion" placeholder="Descripción (opcional)">
+      <input  type="text" class="input-modal" id="idOrdenCompra" placeholder="No. Orden de Compra (opcional)">
       <button type="submit">Guardar compra</button>
     </form>
   </div>
@@ -36,8 +36,8 @@
     <form id="formLogin">
       <h3>Iniciar sesión</h3>
       <button type="button" class="cerrar-btn" onclick="cerrarFormulario()">X</button>
-      <input type="text" id="loginUsuario" placeholder="Usuario" required>
-      <input type="password" id="loginPassword" placeholder="Contraseña" required>
+      <input type="text" class="input-modal" id="loginUsuario" placeholder="Usuario" required>
+      <input type="password" class="input-modal" id="loginPassword" placeholder="Contraseña" required>
       <button type="submit">Ingresar</button>
     </form>
   </div>
