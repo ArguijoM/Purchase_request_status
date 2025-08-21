@@ -6,10 +6,9 @@ const comprasList = document.getElementById('listaCompras');
 let compras = [];
 const usuarios = [
   { usuario: "admin", password: "admin", tipo: 3 },
-  { usuario: "compras", password: "compras", tipo: 2},
-  { usuario: "usuario", password: "usuario", tipo: 1}
+  { usuario: "compras", password: "compras", tipo: 2 },
+  { usuario: "usuarios", password: "usuarios", tipo: 1 }
 ];
-
 const estados = ["No iniciado", "En proceso", "Terminado", "Cancelado"];
 const camposEstatus = [
   "Solicitado",
@@ -46,30 +45,56 @@ document.getElementById('formLogin').addEventListener('submit', (e) => {
 function actualizarPermisos() {
   if (!usuarioActual) return;
 
-  // Si es admin, mostramos el botón Nueva Compra y los botones de editar/borrar
-  if (usuarioActual.tipo === "admin") {
-    document.getElementById('btnNuevaCompra').style.display = 'inline-block';
+  // Mostrar el botón "Nueva Compra" para cualquier usuario logueado
+  document.getElementById('btnNuevaCompra').style.display = 'inline-block';
+
+  // Mostrar u ocultar botones de edición/borrado según tipo
+  if (usuarioActual.tipo === 3) {
+    // Admin: mostrar todos los botones de edición
     document.querySelectorAll('.guardar-btn').forEach(btn => btn.style.display = 'inline-block');
   } else {
-    // Usuarios generales: ocultar botones de edición/borrado y Nueva Compra
-    document.getElementById('btnNuevaCompra').style.display = 'none';
+    // Tipos 1 y 2: ocultar botones de borrar/editar (excepto creación)
     document.querySelectorAll('.guardar-btn').forEach(btn => btn.style.display = 'none');
   }
 }
 
 
-function verificarPermiso() {
+
+// Nueva función verificarPermiso que recibe el campo a modificar
+function verificarPermiso(campo) {
   if (!usuarioActual) {
     // Mostrar el modal de login
     document.getElementById('loginContainer').style.display = 'flex';
     return false;
   }
-  if (usuarioActual.tipo !== "admin") {
-    alert("No tienes permisos para realizar esta acción");
+
+  const tipo = usuarioActual.tipo; // 1, 2 o 3
+
+  // tipo 3: admin, sin restricciones
+  if (tipo === 3) return true;
+
+  // tipo 2: no puede modificar OC_solicitada
+  if (tipo === 2 && campo === "OC_solicitada") {
+    alert("No tienes permisos para modificar este estado.");
     return false;
   }
+
+  // tipo 1: restricciones específicas
+  const restringidosTipo1 = [
+    "OC_realizada",
+    "OC_autorizada",
+    "OC_pagada",
+    "Producto_recibido",
+    "Agregado_al_sistema"
+  ];
+  if (tipo === 1 && restringidosTipo1.includes(campo)) {
+    alert("No tienes permisos para modificar este estado.");
+    return false;
+  }
+
   return true;
 }
+
 
 function mostrarCompras() {
   comprasList.innerHTML = '';
@@ -248,14 +273,12 @@ function generarVistaEstatus(compra) {
 
 // Función para manejar el click del dropdown
 function handleDropdownClick(button, compraId, campo) {
-  if (usuarioActual && usuarioActual.tipo === 'admin') {
+  if (usuarioActual && usuarioActual.tipo === 3) {
     toggleMenu(button); // admin puede abrir menú
   } else {
-    // No admin → llamar función de verificación
-    if (typeof verificarPermiso === 'function') {
-      verificarPermiso();
-    } else {
-      console.warn('Función verificarPermiso() no definida.');
+    // Tipos 1 y 2 → abrir menú solo si tienen permiso en este campo
+    if (verificarPermiso(campo)) {
+      toggleMenu(button);
     }
   }
 }
@@ -269,18 +292,14 @@ function toggleMenu(btn) {
 
 // Función para cambiar estatus
 async function cambiarEstatus(compraId, campo, nuevoEstado) {
-  if (!verificarPermiso()) return;
+  if (!verificarPermiso(campo)) return;
 
   const compra = compras.find(c => c.id === compraId);
   if (!compra) return;
 
-  // Guardar para revertir si falla
   const estadoAnterior = compra.estatus[campo];
-
-  // Actualiza en memoria
   compra.estatus[campo] = nuevoEstado;
 
-  // Regla: si se marca "Terminado", avanzar el siguiente paso a "En proceso" si está "No iniciado"
   if (nuevoEstado === "Terminado") {
     const idx = camposEstatus.indexOf(campo);
     const sig = camposEstatus[idx + 1];
@@ -297,13 +316,10 @@ async function cambiarEstatus(compraId, campo, nuevoEstado) {
     });
     if (!res.ok) throw new Error("PUT /compras/:id falló");
 
-    // Re-render y cerrar menús abiertos de este paso
     mostrarCompras();
-    // (opcional) si quieres: actualizarPermisos(); // por si ocultas botones a no-admins tras re-render
   } catch (err) {
     console.error(err);
     alert("No se pudo actualizar el estado en el servidor. Se revertirá el cambio.");
-    // Revertir en memoria y re-render
     compra.estatus[campo] = estadoAnterior;
     mostrarCompras();
   }
@@ -315,7 +331,8 @@ function generarChecks(compraId, campo, estado) {
   return estados.map(est => `
     <label>
       <input type="checkbox" data-compra-id="${compraId}" data-campo="${campo}" value="${est}" 
-      ${estado === est ? "checked" : ""} ${usuarioActual && usuarioActual.tipo !== 'admin' ? 'disabled' : ''}>
+      ${estado === est ? "checked" : ""} ${usuarioActual && usuarioActual.tipo !== 3 ? '' : ''}
+>
       ${est}
     </label>
   `).join("");
