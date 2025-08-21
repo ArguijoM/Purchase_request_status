@@ -12,7 +12,7 @@ const usuarios = [
 const estados = ["No iniciado", "En proceso", "Terminado", "Cancelado"];
 const camposEstatus = [
   "Solicitado",
-  "Cotizacion_de_departamento",
+  "Cotizacion",
   "OC_solicitada",
   "OC_realizada",
   "OC_verificada",

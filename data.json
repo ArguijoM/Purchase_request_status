@@ -6,7 +6,7 @@
     "orden_compra": "adasdasdfasfas",
     "estatus": {
       "Solicitado": "Terminado",
-      "Cotizacion_de_departamento": "Terminado",
+      "Cotizacion": "Terminado",
       "OC_solicitada": "Terminado",
       "OC_realizada": "Terminado",
       "OC_verificada": "Terminado",
@@ -25,7 +25,7 @@
     "orden_compra": "",
     "estatus": {
       "Solicitado": "Terminado",
-      "Cotizacion_de_departamento": "Terminado",
+      "Cotizacion": "Terminado",
       "OC_solicitada": "En proceso",
       "OC_realizada": "No iniciado",
       "OC_verificada": "No iniciado",
@@ -43,9 +43,9 @@
     "descripcion": "",
     "orden_compra": "",
     "estatus": {
-      "Solicitado": "En proceso",
-      "Cotizacion_de_departamento": "No iniciado",
-      "OC_solicitada": "No iniciado",
+      "Solicitado": "Terminado",
+      "Cotizacion": "Terminado",
+      "OC_solicitada": "En proceso",
       "OC_realizada": "No iniciado",
       "OC_verificada": "No iniciado",
       "OC_autorizada": "No iniciado",
