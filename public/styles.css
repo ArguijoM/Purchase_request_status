@@ -51,7 +51,12 @@ header button {
 
 h2.titulo-lista {
     text-align: center;
+    
     /* espacio a la izquierda */
+}
+h3{
+text-align: center;
+color: #838282;
 }
 
 

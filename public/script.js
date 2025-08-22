@@ -24,7 +24,7 @@ const camposEstatus = [
   "Agregado_al_sistema"
 ];
 
-let usuarioActual = null; 
+let usuarioActual = null;
 
 
 document.getElementById('formLogin').addEventListener('submit', (e) => {
@@ -93,6 +93,14 @@ function verificarPermiso(campo) {
 
 function mostrarCompras() {
   comprasList.innerHTML = '';
+
+  if (compras.length === 0) {
+    const mensaje = document.createElement('h3');
+    mensaje.textContent = "No hay compras activas";
+    comprasList.appendChild(mensaje);
+    return; // detener aquí
+  }
+
   compras.forEach((compra) => {
     const div = document.createElement('details');
     div.className = 'compra';
