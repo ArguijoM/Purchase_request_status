@@ -350,6 +350,10 @@ function generarChecks(compraId, campo, estado) {
 
 // ---------- ID ORDEN ----------
 async function guardarIdOrden(compraId) {
+  if (!usuarioActual) {
+    document.getElementById('loginContainer').style.display = 'flex';
+    return;
+  }
   // Usuario tipo 1 no puede guardar la Orden de Compra
   if (usuarioActual && usuarioActual.tipo === 1) {
     alert("No tienes permisos para guardar la Orden de Compra.");
@@ -384,6 +388,7 @@ async function guardarIdOrden(compraId) {
 
 
 function editarIdOrden(compraId) {
+  
   // Si no hay usuario logeado, mostrar modal de login
   if (!usuarioActual) {
     document.getElementById('loginContainer').style.display = 'flex';
