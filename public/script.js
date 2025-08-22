@@ -42,15 +42,21 @@ document.getElementById('formLogin').addEventListener('submit', (e) => {
     alert("Usuario o contraseña incorrectos");
   }
 });
+
+
 function actualizarPermisos() {
   if (!usuarioActual) return;
 
-  // Mostrar el botón "Nueva Compra" para cualquier usuario logueado
-  document.getElementById('btnNuevaCompra').style.display = 'inline-block';
+  // Mostrar el botón "Nueva Compra" para todos los usuarios
+  btnNuevaCompra.style.display = 'inline-block';
 
-  // Mostrar todos los botones de eliminar/editar (guardar-btn) para todos los usuarios logueados
-  document.querySelectorAll('.guardar-btn').forEach(btn => btn.style.display = 'inline-block');
+  // No ocultar ningún botón, todos visibles
+  // document.querySelectorAll('.guardar-btn, .guardar-btn-2').forEach(btn => {
+  //   btn.style.display = (usuarioActual.tipo !== 1) ? 'inline-block' : 'none';
+  // });
 }
+
+
 
 
 
@@ -303,13 +309,13 @@ async function cambiarEstatus(compraId, campo, nuevoEstado) {
   const estadoAnterior = compra.estatus[campo];
   compra.estatus[campo] = nuevoEstado;
 
-  if (nuevoEstado === "Terminado") {
-    const idx = camposEstatus.indexOf(campo);
-    const sig = camposEstatus[idx + 1];
-    if (sig && compra.estatus[sig] === "No iniciado") {
-      compra.estatus[sig] = "En proceso";
-    }
-  }
+  //if (nuevoEstado === "Terminado") {
+  //  const idx = camposEstatus.indexOf(campo);
+  //  const sig = camposEstatus[idx + 1];
+  //  if (sig && compra.estatus[sig] === "No iniciado") {
+  //    compra.estatus[sig] = "En proceso";
+  //  }
+ // }
 
   try {
     const res = await fetch(`/compras/${compraId}`, {
@@ -341,42 +347,32 @@ function generarChecks(compraId, campo, estado) {
   `).join("");
 }
 
-// ---------- CAMBIOS DE ESTATUS ----------
-function cambiarPaso(compraId, campoNuevo, selectElement) {
-  const compra = compras.find(c => c.id === compraId);
-  if (!compra) return;
-
-  // Guardamos el valor previo
-  let pasoActual = Object.entries(compra.estatus).find(([campo, estado]) => estado === "En proceso");
-  if (!pasoActual) pasoActual = Object.entries(compra.estatus)[0];
-  const [campoActual, estadoActual] = pasoActual;
-
-  // Verificamos permiso
-  if (!verificarPermiso()) {
-    selectElement.value = campoActual; // Restauramos
-    return;
-  }
-
-  // Solo si hay permiso, actualizar los checks
-  const estadoNuevo = compra.estatus[campoNuevo];
-  const checksDiv = document.getElementById(`checks_${compraId}`);
-  checksDiv.innerHTML = generarChecks(compraId, campoNuevo, estadoNuevo);
-}
-
 
 // ---------- ID ORDEN ----------
 async function guardarIdOrden(compraId) {
-  if (!verificarPermiso()) return;
+  // Usuario tipo 1 no puede guardar la Orden de Compra
+  if (usuarioActual && usuarioActual.tipo === 1) {
+    alert("No tienes permisos para guardar la Orden de Compra.");
+    return;
+  }
+
   const input = document.getElementById(`idOrden_${compraId}`);
   const valor = input.value.trim();
-  if (!valor) { alert('Ingrese un valor válido para la Orden de Compra.'); return; }
+  if (!valor) {
+    alert('Ingrese un valor válido para la Orden de Compra.');
+    return;
+  }
 
   const compra = compras.find(c => c.id === compraId);
   if (!compra) return;
   compra.orden_compra = valor;
 
   try {
-    const res = await fetch(`/compras/${compraId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(compra) });
+    const res = await fetch(`/compras/${compraId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(compra)
+    });
     if (!res.ok) throw new Error('Error guardando en el servidor');
     mostrarCompras();
   } catch (err) {
@@ -385,17 +381,30 @@ async function guardarIdOrden(compraId) {
   }
 }
 
-function editarIdOrden(compraId) {
-  if (!verificarPermiso()) return;
 
+
+function editarIdOrden(compraId) {
+  // Si no hay usuario logeado, mostrar modal de login
+  if (!usuarioActual) {
+    document.getElementById('loginContainer').style.display = 'flex';
+    return;
+  }
+
+  // Si es usuario tipo 1, mostrar alerta
+  if (usuarioActual.tipo === 1) {
+    alert("No tienes permisos para editar la Orden de Compra.");
+    return;
+  }
+
+  // Usuarios permitidos (tipo 2 o 3)
   const compra = compras.find(c => c.id === compraId);
   if (!compra) return;
 
   const span = document.getElementById(`textoOrden_${compra.id}`);
   if (!span) return;
 
+  // Mostrar input + botón guardar
   const valorActual = span.innerText;
-  // Reemplazar el texto por input + botón guardar
   span.parentElement.innerHTML = `
     <input type="text" id="editarOrden_${compraId}" value="${valorActual}" class="editable-input">
     <button class="guardar-btn" onclick="guardarEdicionOrden(${compraId})">Guardar</button>
@@ -403,18 +412,31 @@ function editarIdOrden(compraId) {
 }
 
 
+
+
 async function guardarEdicionOrden(compraId) {
-  if (!verificarPermiso()) return;
+  if (usuarioActual && usuarioActual.tipo === 1) {
+    alert("No tienes permisos para guardar la Orden de Compra.");
+    return;
+  }
+
   const input = document.getElementById(`editarOrden_${compraId}`);
   const valor = input.value.trim();
-  if (!valor) { alert('Ingrese un valor válido para la Orden de Compra.'); return; }
+  if (!valor) {
+    alert('Ingrese un valor válido para la Orden de Compra.');
+    return;
+  }
 
   const compra = compras.find(c => c.id === compraId);
   if (!compra) return;
   compra.orden_compra = valor;
 
   try {
-    const res = await fetch(`/compras/${compraId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(compra) });
+    const res = await fetch(`/compras/${compraId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(compra)
+    });
     if (!res.ok) throw new Error('Error guardando en el servidor');
     alert("Orden de Compra editada con éxito.");
     mostrarCompras();
@@ -519,7 +541,18 @@ formCompra.addEventListener('submit', async (e) => {
 });
 
 async function eliminarCompra(compraId) {
-  if (!verificarPermiso()) return;
+  // Si no hay usuario logeado, mostrar modal de login
+  if (!usuarioActual) {
+    document.getElementById('loginContainer').style.display = 'flex';
+    return;
+  }
+
+  // Usuario tipo 1 no puede eliminar compras
+  if (usuarioActual.tipo === 1) {
+    alert("No tienes permisos para eliminar compras.");
+    return;
+  }
+
   if (!confirm("¿Estás seguro de eliminar esta compra?")) return;
 
   try {
@@ -533,6 +566,8 @@ async function eliminarCompra(compraId) {
     alert("No se pudo eliminar la compra del servidor.");
   }
 }
+
+
 
 // ---------- FORMULARIO NUEVA COMPRA ----------
 btnNuevaCompra.addEventListener('click', () => {
