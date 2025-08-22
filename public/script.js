@@ -6,8 +6,8 @@ const comprasList = document.getElementById('listaCompras');
 let compras = [];
 const usuarios = [
   { usuario: "admin", password: "admin", tipo: 3 },
-  { usuario: "compras", password: "compras", tipo: 2 },
-  { usuario: "usuarios", password: "usuarios", tipo: 1 }
+  { usuario: "com", password: "8520", tipo: 2 },
+  { usuario: "sup", password: "1029", tipo: 1 }
 ];
 const estados = ["No iniciado", "En proceso", "Terminado", "Cancelado"];
 const camposEstatus = [
@@ -24,7 +24,7 @@ const camposEstatus = [
   "Agregado_al_sistema"
 ];
 
-let usuarioActual = null; // guardará el usuario logueado
+let usuarioActual = null; 
 
 
 document.getElementById('formLogin').addEventListener('submit', (e) => {
