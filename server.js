@@ -1,85 +1,96 @@
 // server.js
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
+require('dotenv').config(); // opcional, para desarrollo local
+const express = require('express');
+const { Pool } = require('pg');
+
 const app = express();
 app.use(express.json());
-app.use(express.static("public")); // si tu HTML, CSS y JS están en public/
+app.use(express.static('public')); // si tienes frontend en /public
 
-const dataPath = path.join(__dirname, "data.json");
+// Pool de conexiones usando DATABASE_URL (Render)
+// Al usar Render a menudo se añade ssl.rejectUnauthorized=false para evitar errores TLS en el entorno.
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // debe venir del env en Render
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+});
 
-// GET /compras
-app.get("/compras", (req, res) => {
+// Creamos la tabla si no existe (una columna id + data JSONB)
+const CREATE_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS compras (
+  id SERIAL PRIMARY KEY,
+  data JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+`;
+
+// Inicialización: crear tabla y luego arrancar el servidor
+(async () => {
   try {
-    const compras = JSON.parse(fs.readFileSync(dataPath, "utf8"));
+    await pool.query(CREATE_TABLE_SQL);
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+  } catch (err) {
+    console.error('Error inicializando la base de datos:', err);
+    process.exit(1);
+  }
+})();
+
+/* --- RUTAS --- */
+
+// GET /compras -> devuelve array con { id, ...data }
+app.get('/compras', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, data FROM compras ORDER BY id');
+    const compras = result.rows.map(r => ({ id: r.id, ...r.data }));
     res.json(compras);
   } catch (err) {
-    res.status(500).json({ error: "Error leyendo compras" });
+    console.error(err);
+    res.status(500).json({ error: 'Error leyendo compras' });
   }
 });
 
-// POST /compras
-app.post("/compras", (req, res) => {
+// POST /compras -> inserta body completo en columna JSONB y devuelve id nuevo
+app.post('/compras', async (req, res) => {
   try {
-    let compras = [];
-    if (fs.existsSync(dataPath)) {
-      compras = JSON.parse(fs.readFileSync(dataPath, "utf8"));
-    }
-    compras.push(req.body);
-    fs.writeFileSync(dataPath, JSON.stringify(compras, null, 2));
-    res.json({ mensaje: "Compra agregada" });
+    const body = req.body || {};
+    const result = await pool.query(
+      'INSERT INTO compras (data) VALUES ($1) RETURNING id',
+      [body]
+    );
+    res.json({ mensaje: 'Compra agregada', id: result.rows[0].id });
   } catch (err) {
-    console.error("Error guardando compra:", err);
-    res.status(500).json({ error: "Error guardando compra" });
+    console.error('Error guardando compra:', err);
+    res.status(500).json({ error: 'Error guardando compra' });
   }
 });
 
-// PUT /compras/:id -> actualizar cualquier campo (estatus, id_orden_compra, etc.)
-app.put("/compras/:id", (req, res) => {
+// PUT /compras/:id -> hace merge de JSON (sobrescribe claves enviadas)
+app.put('/compras/:id', async (req, res) => {
   try {
-    const compras = JSON.parse(fs.readFileSync(dataPath, "utf8"));
-    const id = parseInt(req.params.id); 
-    const compraIndex = compras.findIndex(c => c.id === id);
-
-    if (compraIndex === -1) {
-      return res.status(404).json({ error: "Compra no encontrada" });
-    }
-
-    // Actualiza cualquier campo enviado en el body
-    Object.keys(req.body).forEach(key => {
-      compras[compraIndex][key] = req.body[key];
-    });
-
-    fs.writeFileSync(dataPath, JSON.stringify(compras, null, 2));
-    res.json({ mensaje: "Compra actualizada" });
+    const id = parseInt(req.params.id, 10);
+    const updates = req.body || {};
+    // data = data || updates  (jsonb concatenation: keys de updates reemplazan a las anteriores)
+    const result = await pool.query(
+      'UPDATE compras SET data = data || $1 WHERE id = $2 RETURNING id',
+      [updates, id]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Compra no encontrada' });
+    res.json({ mensaje: 'Compra actualizada' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error actualizando compra" });
+    res.status(500).json({ error: 'Error actualizando compra' });
   }
 });
 
-// DELETE /compras/:id -> eliminar compra
-app.delete("/compras/:id", (req, res) => {
+// DELETE /compras/:id -> elimina
+app.delete('/compras/:id', async (req, res) => {
   try {
-    const compras = JSON.parse(fs.readFileSync(dataPath, "utf8"));
-    const id = parseInt(req.params.id);
-    const compraIndex = compras.findIndex(c => c.id === id);
-
-    if (compraIndex === -1) return res.status(404).json({ error: "Compra no encontrada" });
-
-    compras.splice(compraIndex, 1); // eliminar del array
-    fs.writeFileSync(dataPath, JSON.stringify(compras, null, 2));
-    res.json({ mensaje: "Compra eliminada" });
+    const id = parseInt(req.params.id, 10);
+    const result = await pool.query('DELETE FROM compras WHERE id = $1', [id]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Compra no encontrada' });
+    res.json({ mensaje: 'Compra eliminada' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error eliminando compra" });
+    res.status(500).json({ error: 'Error eliminando compra' });
   }
 });
-
-
-
-
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
-
