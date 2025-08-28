@@ -309,19 +309,11 @@ async function cambiarEstatus(compraId, campo, nuevoEstado) {
   const estadoAnterior = compra.estatus[campo];
   compra.estatus[campo] = nuevoEstado;
 
-  //if (nuevoEstado === "Terminado") {
-  //  const idx = camposEstatus.indexOf(campo);
-  //  const sig = camposEstatus[idx + 1];
-  //  if (sig && compra.estatus[sig] === "No iniciado") {
-  //    compra.estatus[sig] = "En proceso";
-  //  }
- // }
-
   try {
     const res = await fetch(`/compras/${compraId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(compra)
+      body: JSON.stringify({ estatus: compra.estatus }) // <-- solo el campo estatus
     });
     if (!res.ok) throw new Error("PUT /compras/:id falló");
 
@@ -333,6 +325,7 @@ async function cambiarEstatus(compraId, campo, nuevoEstado) {
     mostrarCompras();
   }
 }
+
 
 
 
@@ -354,8 +347,7 @@ async function guardarIdOrden(compraId) {
     document.getElementById('loginContainer').style.display = 'flex';
     return;
   }
-  // Usuario tipo 1 no puede guardar la Orden de Compra
-  if (usuarioActual && usuarioActual.tipo === 1) {
+  if (usuarioActual.tipo === 1) {
     alert("No tienes permisos para guardar la Orden de Compra.");
     return;
   }
@@ -375,7 +367,7 @@ async function guardarIdOrden(compraId) {
     const res = await fetch(`/compras/${compraId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(compra)
+      body: JSON.stringify({ orden_compra: compra.orden_compra }) // <-- solo orden_compra
     });
     if (!res.ok) throw new Error('Error guardando en el servidor');
     mostrarCompras();
@@ -384,6 +376,7 @@ async function guardarIdOrden(compraId) {
     alert('No se pudo guardar la Orden de compra en el servidor.');
   }
 }
+
 
 
 
@@ -440,7 +433,7 @@ async function guardarEdicionOrden(compraId) {
     const res = await fetch(`/compras/${compraId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(compra)
+      body: JSON.stringify({ orden_compra: compra.orden_compra }) // <-- solo orden_compra
     });
     if (!res.ok) throw new Error('Error guardando en el servidor');
     alert("Orden de Compra editada con éxito.");
@@ -450,6 +443,7 @@ async function guardarEdicionOrden(compraId) {
     alert('No se pudo actualizar la Orden de compra en el servidor.');
   }
 }
+
 
 // ---------- ESCUCHAR CHECKS ----------
 document.addEventListener("change", async (e) => {
