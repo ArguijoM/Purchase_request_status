@@ -523,18 +523,24 @@ formCompra.addEventListener('submit', async (e) => {
   const descripcion = document.getElementById('descripcion').value.trim();
   const idOrden = document.getElementById('idOrdenCompra').value.trim();
 
-  const nuevoId = compras.length > 0 ? Math.max(...compras.map(c => c.id)) + 1 : 1;
-
   const estatusPorDefault = {};
   camposEstatus.forEach((campo, i) => estatusPorDefault[campo] = i === 0 ? "En proceso" : "No iniciado");
 
-  const nuevaCompra = { id: nuevoId, nombre, descripcion, orden_compra: idOrden, estatus: estatusPorDefault };
-
-  compras.push(nuevaCompra);
+  const nuevaCompra = { nombre, descripcion, orden_compra: idOrden, estatus: estatusPorDefault };
 
   try {
-    const res = await fetch("/compras", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nuevaCompra) });
+    const res = await fetch("/compras", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nuevaCompra)
+    });
+
     if (!res.ok) throw new Error("Error guardando en el servidor");
+
+    // Recuperamos la compra con el id generado por el backend
+    const data = await res.json();
+    compras.push(data.compra); // <-- aquí usamos el id real del servidor
+
   } catch (err) {
     console.error(err);
     alert("No se pudo guardar la compra en el servidor.");
@@ -544,6 +550,7 @@ formCompra.addEventListener('submit', async (e) => {
   formCompra.reset();
   formContainer.style.display = 'none';
 });
+
 
 async function eliminarCompra(compraId) {
   // Si no hay usuario logeado, mostrar modal de login
