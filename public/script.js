@@ -594,38 +594,36 @@ function exportarCSV(datos) {
   // Encabezados base (todo excepto estatus)
   const encabezadosBase = Object.keys(datos[0]).filter(k => k !== "estatus");
 
-  // Usar el orden fijo de camposEstatus, no Object.keys()
+  // Orden fijo de camposEstatus
   const encabezados = [...encabezadosBase, ...camposEstatus];
 
-  // Construir encabezados numerados solo para los estatus
+  // Encabezados numerados solo para estatus
   const encabezadosNumerados = encabezados.map((h, i) => {
-    if (i < encabezadosBase.length) {
-      return h; // Campos base SIN numerar
-    }
+    if (i < encabezadosBase.length) return h;
     return `${i - encabezadosBase.length + 1}: ${h}`;
   });
 
   // Filas
   const filas = datos.map(obj => {
-    const filaBase = encabezadosBase.map(campo => {
-      const valor = obj[campo];
-      return valor === undefined || valor === null || valor === "" ? "-" : valor;
-    });
-
-    // Ahora recorremos camposEstatus en orden fijo
-    const filaEstatus = camposEstatus.map(est => {
-      const valor = obj.estatus?.[est] ?? "";
-      return valor === "No iniciado" || valor === "" ? "-" : valor;
-    });
-
+    const filaBase = encabezadosBase.map(campo => obj[campo] ?? "-");
+    const filaEstatus = camposEstatus.map(est => obj.estatus?.[est] ?? "-");
     return [...filaBase, ...filaEstatus].join(",");
   });
 
   const csvContent = [encabezadosNumerados.join(","), ...filas].join("\n");
 
-  // resto de tu código para descargar el archivo...
-}
+  // Crear Blob y descargar
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
 
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "compras.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 
 
