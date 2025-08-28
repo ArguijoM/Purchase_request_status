@@ -606,11 +606,21 @@ function exportarCSV(datos) {
   // Filas
   const filas = datos.map(obj => {
     const filaBase = encabezadosBase.map(campo => obj[campo] ?? "-");
-    const filaEstatus = camposEstatus.map(est => obj.estatus?.[est] ?? "-");
+    const filaEstatus = camposEstatus.map(est => {
+      const valor = obj.estatus?.[est] ?? "";
+      return valor === "No iniciado" ? "" : valor;
+    });
     return [...filaBase, ...filaEstatus].join(",");
   });
 
   const csvContent = [encabezadosNumerados.join(","), ...filas].join("\n");
+
+  // Fecha actual en formato dd-mm-aaaa
+  const hoy = new Date();
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+  const yyyy = hoy.getFullYear();
+  const nombreArchivo = `compras_${dd}-${mm}-${yyyy}.csv`;
 
   // Crear Blob y descargar
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -618,12 +628,13 @@ function exportarCSV(datos) {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "compras.csv";
+  a.download = nombreArchivo;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
 
 
 
