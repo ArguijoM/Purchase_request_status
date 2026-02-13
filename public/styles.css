@@ -51,12 +51,13 @@ header button {
 
 h2.titulo-lista {
     text-align: center;
-    
+
     /* espacio a la izquierda */
 }
-h3{
-text-align: center;
-color: #838282;
+
+h3 {
+    text-align: center;
+    color: #838282;
 }
 
 
@@ -81,17 +82,6 @@ img {
     height: auto;
 }
 
-.otros-pasos-horizontal {
-    display: flex;
-    gap: 12px;
-    /* separación entre pasos */
-    overflow-x: auto;
-    /* activa scroll horizontal */
-    padding-bottom: 8px;
-    /* espacio para la barra */
-    scroll-snap-type: x mandatory;
-    /* “encaje” por paso opcional */
-}
 
 /* Personalizar la barra de desplazamiento */
 .otros-pasos-horizontal::-webkit-scrollbar {
@@ -113,11 +103,6 @@ img {
     background: #000000;
 }
 
-/* Firefox */
-.otros-pasos-horizontal {
-    scrollbar-width: thin;
-    scrollbar-color: #595959 #000;
-}
 
 
 /* --- Resto de tus estilos se mantiene igual --- */
@@ -463,21 +448,68 @@ textarea {
 }
 
 .otros-pasos-horizontal {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 15px;
-    overflow-x: auto;
-    /* si no caben */
-    padding: 5px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 16px;
 }
+
+
 
 .paso-horizontal {
     background: #2c2c2c;
     border: 1px solid #555;
-    border-radius: 8px;
-    padding: 10px;
-    min-width: 200px;
-    flex-shrink: 0;
+    border-radius: 10px;
+
+    padding: 12px 10px;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    text-align: center;
+    width: 100%;
+    height: 150px;
+}
+
+.paso-numero {
+    background: #2C2C2C;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+
+    padding: 4px 10px;
+    border-radius: 6px;
+
+    margin-bottom: 6px;
+    align-self: flex-start;
+}
+
+.paso-nombre {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.paso-estado {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.estado-circulo {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #888;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.estado-circulo:hover {
+    transform: scale(1.15);
 }
 
 .paso-horizontal strong {
@@ -579,6 +611,108 @@ h2 {
     /* opcional: cambiar color del placeholder */
 }
 
+.estado-circulo-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.estado-circulo {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 3px solid #999;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.estado-circulo:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+}
+
+#leyenda-estados {
+    position: sticky;
+    /* 🔥 clave */
+    top: 0;
+    z-index: 1000;
+
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+
+    padding: 8px 16px;
+    margin-bottom: 8px;
+
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+
+    border-radius: 0 0 12px 12px;
+}
+
+/* Cada item */
+.item-leyenda {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 18px;
+    color: #fff;
+    white-space: nowrap;
+}
+
+/* Círculos */
+.dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+}
+
+.label-orden-compra {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.p-descripcion {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.compra-grid strong {
+    font-size: 30px !important;
+}
+
+.nombre-compra {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.2;
+}
+
+
+.dot.gris {
+    background: gray;
+}
+
+.dot.amarillo {
+    background: #ffeb3b;
+}
+
+.dot.verde {
+    background: #4caf50;
+}
+
+.dot.rojo {
+    background: #f44336;
+}
+
+#btnLogout {
+    background: #484848;
+}
+
 
 /* Móviles: pantallas hasta 768px */
 @media (max-width: 768px) {
@@ -610,13 +744,38 @@ h2 {
         height: 40px !important;
     }
 
+    .otros-pasos-horizontal {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 320px));
+        justify-content: center;
+        gap: 14px;
+    }
+
+
     .paso-horizontal {
         background: #2c2c2c;
         border: 1px solid #555;
         border-radius: 8px;
         padding: 10px;
-        min-width: 200px;
-        flex-shrink: 0;
+
+        width: 100%;
+        height: 100%;
+        max-width: 320px;
+        max-height: 190px;
+        box-sizing: border-box;
+    }
+
+    .item-leyenda {
+        font-size: 16px;
+    }
+
+    .paso-numero {
+        align-self: center;
+        font-size: 16px;
+    }
+
+    .paso-nombre {
+        font-size: 14px;
     }
 
     .paso-horizontal strong {

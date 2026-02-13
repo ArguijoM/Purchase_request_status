@@ -14,7 +14,8 @@
   <header>
     <h1>Estado de solicitud de compra</h1>
     <div class="acciones-header">
-      <button  id="btnNuevaCompra">Nueva</button>
+      <button id="btnLogout" style="display:none;"><i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+      <button id="btnNuevaCompra">Nueva</button>
       <button id="btnExportCsv"><i class="fa-solid fa-angles-down"></i></button>
     </div>
   </header>
@@ -24,9 +25,9 @@
     <form id="formCompra">
       Agregar nueva compra
       <button type="button" class="cerrar-btn" onclick="cerrarFormulario()">X</button>
-      <input  type="text" class="input-modal" id="nombre" placeholder="Nombre" required>
-      <input  type="text" class="input-modal" id="descripcion" placeholder="Descripción (opcional)">
-      <input  type="text" class="input-modal" id="idOrdenCompra" placeholder="No. Orden de Compra (opcional)">
+      <input type="text" class="input-modal" id="nombre" placeholder="Nombre" required>
+      <input type="text" class="input-modal" id="descripcion" placeholder="Descripción (opcional)">
+      <input type="text" class="input-modal" id="idOrdenCompra" placeholder="No. Orden de Compra (opcional)">
       <button type="submit">Guardar compra</button>
     </form>
   </div>
@@ -42,7 +43,24 @@
     </form>
   </div>
 
-
+  <div id="leyenda-estados">
+    <div class="item-leyenda">
+      <span class="dot gris"></span>
+      <span>No iniciado</span>
+    </div>
+    <div class="item-leyenda">
+      <span class="dot amarillo"></span>
+      <span>En proceso</span>
+    </div>
+    <div class="item-leyenda">
+      <span class="dot verde"></span>
+      <span>Terminado</span>
+    </div>
+    <div class="item-leyenda">
+      <span class="dot rojo"></span>
+      <span>Cancelado</span>
+    </div>
+  </div>
 
   <!-- Lista de compras -->
   <div id="listaCompras" style="margin-top: 30px;"></div>

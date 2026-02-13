@@ -24,6 +24,21 @@ const camposEstatus = [
   "Agregado_al_sistema"
 ];
 
+const flujoEstados = [
+  "No iniciado",
+  "En proceso",
+  "Terminado",
+  "Cancelado"
+];
+
+const colorPorEstado = {
+  "No iniciado": "#777",
+  "En proceso": "#ffeb3b",
+  "Terminado": "#4caf50",
+  "Cancelado": "#f44336"
+};
+
+
 let usuarioActual = null;
 
 
@@ -36,12 +51,56 @@ document.getElementById('formLogin').addEventListener('submit', (e) => {
 
   if (encontrado) {
     usuarioActual = encontrado;
+    guardarSesion(encontrado);
+    actualizarVisibilidadLogout();
     document.getElementById('loginContainer').style.display = 'none';
     actualizarPermisos();
   } else {
     alert("Usuario o contraseña incorrectos");
   }
 });
+
+function guardarSesion(usuario) {
+  const duracionMs = 1000 * 60 * 60 * 24; // 24 horas
+  const sesion = {
+    usuario: usuario.usuario,
+    tipo: usuario.tipo,
+    expira: Date.now() + duracionMs
+  };
+  localStorage.setItem("sesionCompra", JSON.stringify(sesion));
+}
+
+function restaurarSesion() {
+  const raw = localStorage.getItem("sesionCompra");
+  if (!raw) return;
+
+  const sesion = JSON.parse(raw);
+
+  if (Date.now() > sesion.expira) {
+    localStorage.removeItem("sesionCompra");
+    return;
+  }
+
+  usuarioActual = {
+    usuario: sesion.usuario,
+    tipo: sesion.tipo
+  };
+
+  document.getElementById('loginContainer').style.display = 'none';
+  actualizarPermisos();
+  actualizarVisibilidadLogout();
+
+}
+
+function cerrarSesion() {
+  localStorage.removeItem("sesionCompra");
+  usuarioActual = null;
+  actualizarVisibilidadLogout();
+  location.reload(); // opcional pero recomendable
+}
+document.getElementById("btnLogout")
+  .addEventListener("click", cerrarSesion);
+
 
 
 function actualizarPermisos() {
@@ -115,7 +174,7 @@ function mostrarCompras() {
     const summary = document.createElement('summary');
     summary.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <strong>${compra.nombre}</strong>
+        <div class="nombre-compra">${compra.nombre}</div>
         <button class="guardar-btn" onclick="eliminarCompra(${compra.id})"
           style="font-size: 18px; padding: 10px 15px; min-width: 50px; background-color:#f44336; color:#fff;">
           <i class="fa-solid fa-trash-can"></i>
@@ -139,7 +198,7 @@ function actualizarVistaIdOrden(compra) {
   if (compra.orden_compra) {
     return `
       <div class="fila-orden">
-        <label>No. Orden de Compra:</label>
+        <label class="label-orden-compra">No. Orden de Compra:</label>
         <span style="font-size:18px;" id="textoOrden_${compra.id}">${compra.orden_compra}</span>
         <button class="guardar-btn-2" onclick="editarIdOrden(${compra.id})">
           <i class="fa-solid fa-pen-to-square"></i>
@@ -149,7 +208,7 @@ function actualizarVistaIdOrden(compra) {
   } else {
     return `
       <div class="fila-orden">
-        <label for="idOrden_${compra.id}">No. Orden de Compra:</label>
+        <label class="label-orden-compra" for="idOrden_${compra.id}">No. Orden de Compra:</label>
         <input type="text"  class="input-corto" id="idOrden_${compra.id}" placeholder="Ingrese la Orden de compra">
         <button class="guardar-btn-2" onclick="guardarIdOrden(${compra.id})"><i class="fa-solid fa-plus"></i></button>
       </div>
@@ -199,76 +258,34 @@ function generarVistaEstatus(compra) {
       }).join('');
 
     return `
-      <div class="paso-horizontal" data-compra-id="${compra.id}" data-campo="${campo}" font-size:14px; style="margin-bottom:16px;">
-        <strong>${index + 1}: ${campo.replace(/_/g, " ")}</strong>
-        
-        <!-- Etiqueta y botón alineados -->
-        <div class="estatus-dropdown" 
-             style="display:flex; align-items:center; gap:6px; justify-content:center; position:relative;">
-          
-          <span class="estatus-actual" style="
-                box-sizing: border-box; 
-                display:inline-flex;
-                align-items:center;
-                justify-content:center;
-                padding:0px 6px;
-                font-size:16px;
-                line-height: 1; 
-                background:#121212;
-                border:1px solid #ccc;
-                border-radius:4px;
-                height:28px;">
-            ${estActual}
-          </span>
-          
-          <button 
-            onclick="handleDropdownClick(this, '${compra.id}', '${campo}')"
-            class="desplegar-btn" 
-            style="display:inline-flex; align-items:center; justify-content:center;
-         padding:2px 6px; font-size:16px; line-height:1; font-family:inherit;
-         transform: translateY(5px);
-         background-color:gray; color:white; border:none; border-radius:4px; height:28px;">
-            ▼
-          </button>
+<div class="paso-horizontal">
 
-          <!-- Menú oculto inicialmente -->
-          <ul class="menu-estatus" style="
-              display:none; 
-              position:absolute; 
-              top:100%; 
-              left:50%; 
-              transform:translateX(-50%);
-              background:#000; 
-              color:#fff;
-              border:1px solid #ccc; 
-              padding:4px 0; 
-              margin:4px 0 0 0; 
-              min-width:180px; 
-              z-index:10;">
-            ${opcionesHtml}
-          </ul>
-        </div>
+    <div class="paso-numero">
+        ${index + 1}
+    </div>
 
-        <!-- LED grande centrado -->
-        <div style="margin-top:8px; display:flex; justify-content:center;">
-          <span class="led" style="
-              display:inline-block;
-              width:24px;
-              height:24px;
-              border-radius:50%;
-              background-color:${colorActual};
-              border:2px solid #999;
-          "></span>
-        </div>
-      </div>
-    `;
+    <div class="paso-estado">
+        <span class="estado-circulo"
+              onclick="handleClickEstado(${compra.id}, '${campo}')"
+              style="background:${colorPorEstado[estActual]}">
+        </span>
+    </div>
+
+      <div class="paso-nombre">
+        ${campo.replace(/_/g, " ")}
+    </div>
+
+</div>
+
+`;
+
   }).join('');
 
   return `
     <div class="compra-grid" style="padding: 0 16px;>
       <div class="col col1">
         ${actualizarVistaIdOrden(compra)}
-        ${compra.descripcion ? `<p>Descripción: ${compra.descripcion}</p>` : ''}
+        ${compra.descripcion ? `<p class="p-descripcion">Descripción: ${compra.descripcion}</p>` : ''}
       </div>
       <div class="col col2"></div>
       <div class="col col3">
@@ -381,7 +398,7 @@ async function guardarIdOrden(compraId) {
 
 
 function editarIdOrden(compraId) {
-  
+
   // Si no hay usuario logeado, mostrar modal de login
   if (!usuarioActual) {
     document.getElementById('loginContainer').style.display = 'flex';
@@ -533,7 +550,7 @@ formCompra.addEventListener('submit', async (e) => {
 
     // Recuperamos la compra con el id generado por el backend
     const data = await res.json();
-    compras.push(data.compra); // <-- aquí usamos el id real del servidor
+    compras.unshift(data.compra); // <-- aquí usamos el id real del servidor
 
   } catch (err) {
     console.error(err);
@@ -544,6 +561,17 @@ formCompra.addEventListener('submit', async (e) => {
   formCompra.reset();
   formContainer.style.display = 'none';
 });
+
+function actualizarVisibilidadLogout() {
+  const btn = document.getElementById("btnLogout");
+  if (!btn) return;
+
+  if (usuarioActual) {
+    btn.style.display = "inline-flex";
+  } else {
+    btn.style.display = "none";
+  }
+}
 
 
 async function eliminarCompra(compraId) {
@@ -652,3 +680,35 @@ document.getElementById("btnExportCsv").addEventListener("click", () => {
 
 // ---------- INICIO ----------
 cargarCompras();
+async function handleClickEstado(compraId, campo) {
+  // Verificar login / permisos
+  if (!verificarPermiso(campo)) return;
+
+  const compra = compras.find(c => c.id === compraId);
+  if (!compra) return;
+
+  const estadoActual = compra.estatus[campo];
+  const indexActual = flujoEstados.indexOf(estadoActual);
+  const siguienteEstado = flujoEstados[(indexActual + 1) % flujoEstados.length];
+
+  const estadoAnterior = estadoActual;
+  compra.estatus[campo] = siguienteEstado;
+
+  try {
+    const res = await fetch(`/compras/${compraId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estatus: compra.estatus })
+    });
+
+    if (!res.ok) throw new Error("Error actualizando estado");
+
+    mostrarCompras();
+  } catch (err) {
+    console.error(err);
+    compra.estatus[campo] = estadoAnterior;
+    alert("No se pudo actualizar el estado");
+  }
+}
+
+restaurarSesion();
