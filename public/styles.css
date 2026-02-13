@@ -744,6 +744,13 @@ h2 {
         height: 40px !important;
     }
 
+    #leyenda-estados {
+        display: flex;
+        flex-wrap: wrap;
+        /* 🔥 permite que bajen de línea */
+        gap: 8px;
+    }
+
     .otros-pasos-horizontal {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 320px));
