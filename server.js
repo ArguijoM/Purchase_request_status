@@ -8,9 +8,12 @@ app.use(express.json());
 app.use(express.static('public')); // si tienes frontend en /public
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // aquí irá la URL de Neon
-  ssl: { rejectUnauthorized: false }, // Neon requiere SSL
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
+    : false,
 });
+
 
 
 // Crear tabla si no existe
